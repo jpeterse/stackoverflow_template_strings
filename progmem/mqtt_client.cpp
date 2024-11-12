@@ -1,4 +1,4 @@
-#include "mqtt-client.h"
+#include "mqtt_client.h"
 
 MQTTClient::MQTTClient() {}
 
@@ -78,12 +78,11 @@ bool MQTTClient::process_discovery_template( char* line, uint16_t result_size ) 
   bool _retVal = false;
   char _variable[ result_size ];
   bool match_found;
-  template_engine _tmpl_engine;
   
   Serial.println( ESP.getFreeHeap() );
-  _tmpl_engine.begin();
+  template_engine::begin();
   
-  _hasMatch = _tmpl_engine.process_line( line, match );
+  _hasMatch = template_engine::process_line( line, match );
   if ( !_hasMatch || match.match_length == 0 )
     return true;
 
@@ -118,7 +117,7 @@ bool MQTTClient::process_discovery_template( char* line, uint16_t result_size ) 
     }
 
     if ( _retVal ) {
-      _hasMatch = _tmpl_engine.process_line( line, match );
+      _hasMatch = template_engine::process_line( line, match );
     }
 
   } while ( _retVal && _hasMatch && match.match_length > 0 );

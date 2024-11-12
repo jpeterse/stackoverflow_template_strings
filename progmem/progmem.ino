@@ -1,6 +1,5 @@
 #include <WiFiManager.h>
-#include "template-engine.h"
-#include "mqtt-client.h"
+#include "mqtt_client.h"
 #include "debug.h"
 
 const bool G_FACTORY_RESET = false;
@@ -30,7 +29,8 @@ void setup() {
 
 
 void loop() {
-  g_mqtt_client->callLoop();
+  void();
+  // g_mqtt_client->callLoop();
 }
 
 

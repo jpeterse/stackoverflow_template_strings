@@ -23,18 +23,11 @@ struct G_MATCH_T {
   G_SUBSTR_T attribute_value;
 };
 
-class template_engine {
-  private:
-    char sep_char = '@';
-    
-  public:
-    template_engine();
-    ~template_engine();
+namespace template_engine {
     void begin();
     void setFieldSeperator( const char c );
     bool process_line( char* line, G_MATCH_T &match );
     char hasTemplate( MatchState &ms, char* searchStr );
     void parceTemplateEntry( MatchState &ms, G_MATCH_T &match );
-};
-
+} // namespace
 #endif

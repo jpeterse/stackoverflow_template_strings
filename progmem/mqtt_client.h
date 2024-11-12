@@ -6,8 +6,8 @@
   #include <WiFiClient.h>
   #include <ESP8266WiFi.h>
   #include <PubSubClient.h>
-  #include "template-engine.h"
-  #include "mqtt_message-templates.h"
+  #include "template_engine.h"
+  #include "mqtt_message_templates.h"
   #include "config.h"
   #include "secrets.h"
 
@@ -37,7 +37,6 @@
       void callLoop();
       bool publish_discovery_msg();
     private:
-      void SAFE_PRINT( char* _line );
       bool process_discovery_template( char *_line, uint16_t result_size );
       bool replace_str( char* _line, const char* new_val, uint16_t start_pos, uint16_t end_pos, uint16_t line_size );
   };
