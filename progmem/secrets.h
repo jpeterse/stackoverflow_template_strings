@@ -1,0 +1,11 @@
+const uint8_t G_CONF_HOSTNAME_LENGTH = 64;
+const uint8_t G_CONF_UNIQUE_HOSTNAME_LENGTH = 70;
+const char G_CONF_WIFI_AP_NAME[ 32 ] = "";
+const char G_CONF_WIFI_AP_PASS[ 32 ] = "";
+const char G_CONF_MQTT_SERVER[ 10 ] = "xx.x.x.xx";
+const uint16_t G_CONF_MQTT_SERVER_PORT = 1883;
+const char G_CONF_MQTT_USER[ 16 ] = "";
+const char G_CONF_MQTT_PASS[ 11 ] = "";
+const char G_CONF_HOSTNAME[ G_CONF_HOSTNAME_LENGTH ] = "test_code";
+const char G_HARDWARE_VERSION[ 5 ] = "0.2";
+const char G_FIRMWARE_VERSION[ 5 ] = "0.6";
