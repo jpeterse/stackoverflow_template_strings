@@ -39,7 +39,7 @@
     private:
       void SAFE_PRINT( char* _line );
       bool process_discovery_template( char *_line, uint16_t result_size );
-      void replace_str( char* _line, const char* new_val, uint16_t start_pos, uint16_t end_pos, uint16_t line_size );
+      bool replace_str( char* _line, const char* new_val, uint16_t start_pos, uint16_t end_pos, uint16_t line_size );
   };
 
   extern MQTTClient g_mqtt;

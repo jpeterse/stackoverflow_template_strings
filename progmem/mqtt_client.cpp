@@ -43,7 +43,6 @@ bool MQTTClient::publish_discovery_msg() {
     // strcpy_P( _topic, _progmem_str );
     // _topic[ strlen_P( _progmem_str ) + 1 ] = '\0';
     strlcpy( _topic,  G_DISCOVERY_MESSAGES[ _i ].TOPIC, _line_size );
-    Serial.println( _topic );
 
     // Process discovery template (if needed)    
     _retVal = process_discovery_template( _topic_ptr, _line_size );
@@ -61,8 +60,6 @@ bool MQTTClient::publish_discovery_msg() {
     Serial.print( ESP.getFreeHeap() );
     Serial.print( " Heap Fragmentation: " );
     Serial.println( ESP.getHeapFragmentation() );
-    // Serial.print( " Max Free Block Size: " );
-    // Serial.println( ESP.getMaxFreeBlockSize() );
 
   } while ( ++_i < G_DISCOVERY_MESSAGE_COUNT && _retVal );
 
@@ -92,10 +89,7 @@ bool MQTTClient::process_discovery_template( char* line, uint16_t result_size ) 
 
   do {
     strlcpy( _variable, line + match.variable_name.substr_start, match.variable_name.substr_length + 1 );  // +1 to make room for the trailing '\0'
-    // DEBUG_MSG( "Replacing variable name: %s, @ start %u, end %u\n", _variable, match.variable_name.substr_start, match.variable_name.substr_end  );
-    Serial.println( _variable );
     if ( strcmp( _variable, "unique_name" ) == 0 ) {
-      Serial.println( m_unique_name );
       replace_str( line, m_unique_name, match.match_start, match.match_end, result_size );
       _retVal = true;
     }
@@ -113,16 +107,14 @@ bool MQTTClient::process_discovery_template( char* line, uint16_t result_size ) 
     if ( strcmp( _variable, "ip_address" ) == 0 ) {
       char _ipAddr[ 23 ];
       sprintf( _ipAddr, "http://%s", WiFi.localIP().toString().c_str() );
-      replace_str(  line, _ipAddr, match.match_start, match.match_end, result_size );
-      _retVal = true;
+      _retVal = replace_str(  line, _ipAddr, match.match_start, match.match_end, result_size );
     }
 
     if ( strcmp(_variable, "timezones" ) == 0 ) {
       uint8_t _size = 15;
       char _placeholder[ _size ];
       strlcpy( _placeholder, "placeholder", _size );
-      replace_str( line, _placeholder, match.match_start, match.match_end, result_size );
-      _retVal = true;
+      _retVal = replace_str( line, _placeholder, match.match_start, match.match_end, result_size );
     }
 
     if ( _retVal ) {
@@ -135,15 +127,19 @@ bool MQTTClient::process_discovery_template( char* line, uint16_t result_size ) 
 }
 
 
-void MQTTClient::replace_str( char* line, const char* new_val, uint16_t start_pos, uint16_t end_pos, uint16_t line_size ) {
-  char _post_str[ line_size ];
-  // DEBUG_MSG( "Was called to replace value in line: '%s'\n", line );
-  strlcpy( _post_str, line + end_pos, line_size );
-  line[ start_pos ] = '\0';
-  // DEBUG_MSG( "'%s' '%s' '%s'\n", line, new_val, _post_str );
-  strlcat( line, new_val, line_size );
-  // DEBUG_MSG( "'%s' \n", line );
-  strlcat( line, _post_str, line_size );
-  // DEBUG_MSG( "'%s' \n", line );
+bool MQTTClient::replace_str( char* line, const char* new_val, uint16_t start_pos, uint16_t end_pos, uint16_t line_size ) {
+  size_t line_length = strlen( line );
+  size_t new_val_length = strlen( new_val );
 
+  if ( line_size <= (line_length - (end_pos - start_pos ) + new_val_length ) ) {
+    return false;
+  }
+
+  if ( ( end_pos - start_pos ) != new_val_length ) {
+    memmove( (void*)(line + start_pos + new_val_length), (void*)(line + end_pos), line_length - end_pos + 1);
+  }
+  
+  memcpy( (void*)(line + start_pos), (void*)new_val, new_val_length );
+
+  return true;
 }

@@ -1,4 +1,4 @@
-const char G_MQTT_SENSOR_CONFIG_TOPIC[ 46 ] = "homeassistant/sensor/@@unique_name@@/config";
+const char G_MQTT_SENSOR_CONFIG_TOPIC[] = "homeassistant/sensor/@@unique_name@@/config";
 const char G_MQTT_SENSOR_CONFIG[] = R"=====({"device_class":"illuminance","name":"Current","unique_id":"@@unique_name@@","state_class":"measurement","state_topic":"tele/clocks/@@unique_name@@","command_topic":"cmnd/clocks/@@unique_name@@","unit_of_measurement":"lx","value_template":"{{value_json.current_lux_level}}","device":{"name":"@@unique_name@@","identifiers":"@@unique_name@@","manufacturer":"Watt-This","model":"Wall Clock v@@hardware_version@@","sw_version":"@@firmware_version@@","configuration_url":"@@ip_address@@"}})=====";
 
 const char G_MQTT_SENSOR_AVG_CONFIG_TOPIC[] = "homeassistant/sensor/@@unique_name@@_avg/config";
@@ -18,6 +18,9 @@ const char G_MQTT_NUMBER_LXN_CONFIG[] = R"=====({"entity_category":"config","nam
 
 const char G_MQTT_NUMBER_LXD_CONFIG_TOPIC[] = "homeassistant/number/@@unique_name@@_lxd/config";
 const char G_MQTT_NUMBER_LXD_CONFIG[] = R"=====({"entity_category":"config","name":"Light Level Daytime","unique_id":"@@unique_name@@_lxd","state_topic":"stat/clocks/@@unique_name@@/light_level_day","command_topic":"cmnd/clocks/@@unique_name@@","command_template":"{"light_level_day": {{ this.value }} }","unit_of_measurement":"lx","min":0,"max":65535,"device":{"name":"@@unique_name@@","identifiers":"@@unique_name@@"}})=====";
+
+const char G_MQTT_LIGHT_R1B_CONFIG_TOPIC[] = "homeassistant/light/experimental-wall-clock_9A6C_r1b/config";
+const char G_MQTT_LIGHT_R1B_CONFIG[] = R"=====({"entity_category": "config","name": "Ring 1 Background","unique_id": "@@unique_name@@","state_topic": "stat/clocks/@@unique_name@@/r1b","command_topic": "cmnd/clocks/@@unique_name@@","supported_color_modes": ["rgb","hs"],"color_mode":"hs","rgb_command_topic":"cmnd/clocks/@@unique_name@@/rgb","rgb_state_topic":"stat/clocks/@@unique_name@@/rgb","rgb_command_template":"{\"r1b\":{{red,green,blue}}}","hs_command_topic":"cmnd/clocks/@@unique_name@@/hs","hs_state_topic":"stat/clocks/@@unique_name@@/hs","hs_command_template":"{\"r1b\": {{hue,sat}}}","device": {"name": "@@unique_name@@","identifiers": "@@unique_name@@"}})=====";
 
 const char G_MQTT_TELE_TOPIC[] = "tele/clocks/@@unique_name@@";
 const char G_MQTT_TELE[] = R"=====({"last_reading_dt":"@@data_time@@","current_lux_level":@@current_light_level@@,"average_lux_level":@@average_light_level@@})=====";
