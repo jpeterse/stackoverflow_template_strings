@@ -56,18 +56,24 @@ bool MQTTClient::publish_discovery_msg() {
     //   _retVal = client.publish( _topic, _msg, true );    // disabled for debugging, as we don't connect to server
     Serial.println( _topic );
     Serial.println( _msg );
-    Serial.print( "Free Heap: ");
-    Serial.print( ESP.getFreeHeap() );
-    Serial.print( " Heap Fragmentation: " );
-    Serial.println( ESP.getHeapFragmentation() );
-
-  } while ( ++_i < G_DISCOVERY_MESSAGE_COUNT && _retVal );
+    // Serial.print( "Free Heap: ");
+    // Serial.print( ESP.getFreeHeap() );
+    // Serial.print( " Heap Fragmentation: " );
+    // Serial.println( ESP.getHeapFragmentation() );
+    _i++;
+    Serial.println( _i );
+  } while ( _i < G_DISCOVERY_MESSAGE_COUNT && _retVal );
 
   return _retVal;
 }
 
 
 /* ****** PRIVATE SUPPORT FUNCTIONS ****** */
+
+
+bool MQTTClient::checkBounds( size_t haystack_size, size_t haystack_length, size_t needle_length, size_t replace_length ) {
+  return haystack_size > ( haystack_length - needle_length + replace_length );
+}
 
 
 bool MQTTClient::process_discovery_template( char* line, uint16_t result_size ) {
@@ -89,18 +95,15 @@ bool MQTTClient::process_discovery_template( char* line, uint16_t result_size ) 
   do {
     strlcpy( _variable, line + match.variable_name.substr_start, match.variable_name.substr_length + 1 );  // +1 to make room for the trailing '\0'
     if ( strcmp( _variable, "unique_name" ) == 0 ) {
-      replace_str( line, m_unique_name, match.match_start, match.match_end, result_size );
-      _retVal = true;
+      _retVal = replace_str( line, m_unique_name, match.match_start, match.match_end, result_size );
     }
 
     if ( strcmp( _variable, "hardware_version" ) == 0 ) {
-      replace_str( line, G_HARDWARE_VERSION, match.match_start, match.match_end, result_size );
-      _retVal = true;
+      _retVal = replace_str( line, G_HARDWARE_VERSION, match.match_start, match.match_end, result_size );
     }
 
     if ( strcmp( _variable, "firmware_version" ) == 0 ) {
-      replace_str( line, G_FIRMWARE_VERSION, match.match_start, match.match_end, result_size );
-      _retVal = true;
+      _retVal = replace_str( line, G_FIRMWARE_VERSION, match.match_start, match.match_end, result_size );
     }
 
     if ( strcmp( _variable, "ip_address" ) == 0 ) {
@@ -130,7 +133,7 @@ bool MQTTClient::replace_str( char* line, const char* new_val, uint16_t start_po
   size_t line_length = strlen( line );
   size_t new_val_length = strlen( new_val );
 
-  if ( line_size <= (line_length - (end_pos - start_pos ) + new_val_length ) ) {
+  if ( !checkBounds( line_size, line_length, (end_pos - start_pos ), new_val_length ) ) {
     return false;
   }
 

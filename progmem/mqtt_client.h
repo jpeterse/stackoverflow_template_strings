@@ -37,6 +37,7 @@
       void callLoop();
       bool publish_discovery_msg();
     private:
+      bool checkBounds( size_t haystack_size, size_t haystack_length, size_t needle_length, size_t replace_length );
       bool process_discovery_template( char *_line, uint16_t result_size );
       bool replace_str( char* _line, const char* new_val, uint16_t start_pos, uint16_t end_pos, uint16_t line_size );
   };

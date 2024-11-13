@@ -35,7 +35,7 @@ namespace template_engine {
 
   // process searchString and return a MatchState object
   char hasTemplate( MatchState &ms, char* searchStr ) {
-    char regExStr[ 18 ]; // will be set to "%@%@([^%@]+)%@%@" if default sep_char is used
+    char regExStr[ 21 ]; // will be set to "%@%@([^%@]+)%@%@" if default sep_char is used
     char _ret = REGEXP_NOMATCH;
     char _buf[ 0xff ];
 
@@ -44,7 +44,7 @@ namespace template_engine {
     ms.Target( searchStr );
     return ms.Match( regExStr, 0 );
   }
-
+  
 
   void parceTemplateEntry( MatchState &ms, G_MATCH_T &match ) {
     const uint8_t regExCount = 2;
