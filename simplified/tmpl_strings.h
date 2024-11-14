@@ -10,8 +10,6 @@ struct tmplt_str_t {
   const char* msg;
 };
 
-uint8_t str_pairs = 3;
-
 const tmplt_str_t tmplt_strs[] = {
   { &tmplt_title_1[0], &tmplt_str_1[0] },
   { &tmplt_title_2[0], &tmplt_str_2[0] },
