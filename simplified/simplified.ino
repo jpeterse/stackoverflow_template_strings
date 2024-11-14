@@ -55,14 +55,12 @@ bool process_line( char* line, uint16_t line_size ) {
     
     if ( _start >= strlen( line ) )
       break;
-    if ( !find_key( &line[ _start + 2 ], _length ) )
+    if ( !find_key( &line[ _start + 2 ], _length ) )  // +2 to start new search after the already matched "@@"
       break;
-    
-    _length += 4; // adjust for starting and ending '@' characters.
-    // Serial.printf( "[%s]\t%d:\t%p\t%p\t%s\n", __FUNCTION__, __LINE__, line, line[ 0 ], line );
-    // Serial.printf( "[%s]\t%d:\tmatch start: %d\tmatch length: %d\n", __FUNCTION__, __LINE__, _start, _length );
 
-    strlcpy( _replaceVal, line + _start + 2, _length - 4 + 1 );
+    strlcpy( _replaceVal, line + _start + 2, _length + 1 ); // _length +1 to include space for string termination character '\0'
+
+    _length += 4; // adjust length to include leading and trailing '@' characters.
 
     if ( strcmp( _replaceVal, String("unique_name").c_str() ) == 0 )
       _retVal = replace_str( line, G_CONF_UNIQUE_NAME, _start, _start + _length, line_size );
