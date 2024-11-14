@@ -1,4 +1,10 @@
+#include <WiFiManager.h>
+#include "secrets.h"
 #include "tmpl_strings.h"
+
+WiFiManager wifimanager;
+
+bool G_FACTORY_RESET = false;
 
 void setup() {
   Serial.begin( 19200 );
@@ -6,6 +12,8 @@ void setup() {
   while ( !Serial && millis() < 5000 )
     yield();
   Serial.println();
+
+  connectToWiFi();
 
   read_strs();
 
@@ -38,7 +46,7 @@ void read_strs() {
 }
 
 
-bool process_line( char line[], uint16_t line_size ) {
+bool process_line( char* line, uint16_t line_size ) {
   bool _retVal = false;
   uint16_t _start, _length;
   char _replaceVal[ line_size ];
@@ -54,7 +62,7 @@ bool process_line( char line[], uint16_t line_size ) {
   // Serial.printf( "[%s]\t%d:\t%p\t%p\t%s\n", __FUNCTION__, __LINE__, line, line[ 0 ], line );
   // Serial.printf( "[%s]\t%d:\tmatch start: %d\tmatch length: %d\n", __FUNCTION__, __LINE__, _start, _length );
 
-  strlcpy( _replaceVal, &line[ 0 ] + _start + 2, _length - 4 + 1 );
+  strlcpy( _replaceVal, line + _start + 2, _length - 4 + 1 );
 
   if ( strcmp( _replaceVal, String("first").c_str() ) == 0 )
     _retVal = replace_str( line, String("1.").c_str(), _start, _start + _length, line_size );
@@ -104,4 +112,33 @@ char* _needle;
 
 bool checkBounds( size_t haystack_size, size_t haystack_length, size_t needle_length, size_t replace_length ) {
   return haystack_size > ( haystack_length - needle_length + replace_length );
+}
+
+
+/* connect to wifi network */
+bool connectToWiFi() {
+  bool _retVal;
+
+  WiFi.setHostname( G_CONF_HOSTNAME );
+
+  if ( G_FACTORY_RESET )
+    wifimanager.resetSettings();                      // clear any stored wifi configuration
+
+  WiFi.persistent( true );                            // reconnect to the previously connected access point.
+  WiFi.setAutoReconnect( true );                      // make WiFi automatically reconnect if connection is lost
+  wifimanager.setClass( "invert" );                   // set dark theme for WiFiManager configuration page
+
+  _retVal = wifimanager.autoConnect( G_CONF_WIFI_AP_NAME, G_CONF_WIFI_AP_PASS );
+
+  if ( !_retVal ) {
+    if ( wifimanager.getWiFiIsSaved() )
+      Serial.println( "Unable to connect to WiFi network using saved network information" );
+    else
+      Serial.println( "Unable to connect to WiFi" );
+    return false;
+  }
+
+  Serial.printf( "Connected with IP: %s\n", WiFi.localIP().toString() );
+
+  return true;
 }
