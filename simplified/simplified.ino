@@ -64,18 +64,23 @@ bool process_line( char* line, uint16_t line_size ) {
 
   strlcpy( _replaceVal, line + _start + 2, _length - 4 + 1 );
 
-  if ( strcmp( _replaceVal, String("first").c_str() ) == 0 )
-    _retVal = replace_str( line, String("1.").c_str(), _start, _start + _length, line_size );
-  if ( strcmp( _replaceVal, String("second").c_str() ) == 0 )
-    _retVal = replace_str( line, String("2.").c_str(), _start, _start + _length, line_size );
-  if ( strcmp( _replaceVal, String("third").c_str() ) == 0 )
-    _retVal = replace_str( line, String("3.").c_str(), _start, _start + _length, line_size );
-  if ( strcmp( _replaceVal, String("replace").c_str() ) == 0 )
-    _retVal = replace_str( line, String("sit amet,").c_str(), _start, _start + _length, line_size );
-  if ( strcmp( _replaceVal, String("me").c_str() ) == 0 )
-    _retVal = replace_str( line, String("lacinia tortor, id vehicula").c_str(), _start, _start + _length, line_size );
-  if ( strcmp( _replaceVal, String("and me").c_str() ) == 0 )
-    _retVal = replace_str( line, String("venenatis").c_str(), _start, _start + _length, line_size );
+  if ( strcmp( _replaceVal, String("unique_name").c_str() ) == 0 )
+    _retVal = replace_str( line, G_CONF_UNIQUE_NAME, _start, _start + _length, line_size );
+  if ( strcmp( _replaceVal, String("hardware_version").c_str() ) == 0 )
+    _retVal = replace_str( line, G_HARDWARE_VERSION, _start, _start + _length, line_size );
+  if ( strcmp( _replaceVal, String("firmware_version").c_str() ) == 0 )
+    _retVal = replace_str( line, G_FIRMWARE_VERSION, _start, _start + _length, line_size );
+  if ( strcmp( _replaceVal, String("ip_address").c_str() ) == 0 ){
+    char _ipAddr[ 23 ];
+    sprintf( _ipAddr, "http://%s", WiFi.localIP().toString().c_str() );
+    _retVal = replace_str(  line, _ipAddr, _start, _start + _length, line_size );
+  }
+  if ( strcmp( _replaceVal, String("timezones").c_str() ) == 0 ){
+    uint8_t _size = 15;
+    char _placeholder[ _size ];
+    strlcpy( _placeholder, "placeholder", _size );
+    _retVal = replace_str( line, _placeholder, _start, _start + _length, line_size );
+  }
 
   return _retVal;
 }
