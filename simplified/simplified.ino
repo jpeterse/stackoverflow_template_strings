@@ -51,35 +51,38 @@ bool process_line( char* line, uint16_t line_size ) {
   uint16_t _start, _length;
   char _replaceVal[ line_size ];
   
-  if ( !find_key( line, _start ) )
-    return false;
-  if ( _start >= strlen( line ) )
-    return false;
-  if ( !find_key( &line[ _start + 2 ], _length ) )
-    return false;
-  
-  _length += 4; // adjust for starting and ending '@' characters.
-  // Serial.printf( "[%s]\t%d:\t%p\t%p\t%s\n", __FUNCTION__, __LINE__, line, line[ 0 ], line );
-  // Serial.printf( "[%s]\t%d:\tmatch start: %d\tmatch length: %d\n", __FUNCTION__, __LINE__, _start, _length );
+  while ( find_key( line, _start ) ) {
+    
+    if ( _start >= strlen( line ) )
+      break;
+    if ( !find_key( &line[ _start + 2 ], _length ) )
+      break;
+    
+    _length += 4; // adjust for starting and ending '@' characters.
+    // Serial.printf( "[%s]\t%d:\t%p\t%p\t%s\n", __FUNCTION__, __LINE__, line, line[ 0 ], line );
+    // Serial.printf( "[%s]\t%d:\tmatch start: %d\tmatch length: %d\n", __FUNCTION__, __LINE__, _start, _length );
 
-  strlcpy( _replaceVal, line + _start + 2, _length - 4 + 1 );
+    strlcpy( _replaceVal, line + _start + 2, _length - 4 + 1 );
 
-  if ( strcmp( _replaceVal, String("unique_name").c_str() ) == 0 )
-    _retVal = replace_str( line, G_CONF_UNIQUE_NAME, _start, _start + _length, line_size );
-  if ( strcmp( _replaceVal, String("hardware_version").c_str() ) == 0 )
-    _retVal = replace_str( line, G_HARDWARE_VERSION, _start, _start + _length, line_size );
-  if ( strcmp( _replaceVal, String("firmware_version").c_str() ) == 0 )
-    _retVal = replace_str( line, G_FIRMWARE_VERSION, _start, _start + _length, line_size );
-  if ( strcmp( _replaceVal, String("ip_address").c_str() ) == 0 ){
-    char _ipAddr[ 23 ];
-    sprintf( _ipAddr, "http://%s", WiFi.localIP().toString().c_str() );
-    _retVal = replace_str(  line, _ipAddr, _start, _start + _length, line_size );
-  }
-  if ( strcmp( _replaceVal, String("timezones").c_str() ) == 0 ){
-    uint8_t _size = 15;
-    char _placeholder[ _size ];
-    strlcpy( _placeholder, "placeholder", _size );
-    _retVal = replace_str( line, _placeholder, _start, _start + _length, line_size );
+    if ( strcmp( _replaceVal, String("unique_name").c_str() ) == 0 )
+      _retVal = replace_str( line, G_CONF_UNIQUE_NAME, _start, _start + _length, line_size );
+    if ( strcmp( _replaceVal, String("hardware_version").c_str() ) == 0 )
+      _retVal = replace_str( line, G_HARDWARE_VERSION, _start, _start + _length, line_size );
+    if ( strcmp( _replaceVal, String("firmware_version").c_str() ) == 0 )
+      _retVal = replace_str( line, G_FIRMWARE_VERSION, _start, _start + _length, line_size );
+    if ( strcmp( _replaceVal, String("ip_address").c_str() ) == 0 ){
+      char _ipAddr[ 23 ];
+      sprintf( _ipAddr, "http://%s", WiFi.localIP().toString().c_str() );
+      _retVal = replace_str(  line, _ipAddr, _start, _start + _length, line_size );
+    }
+    if ( strcmp( _replaceVal, String("timezones").c_str() ) == 0 ){
+      uint8_t _size = 15;
+      char _placeholder[ _size ];
+      strlcpy( _placeholder, "placeholder", _size );
+      _retVal = replace_str( line, _placeholder, _start, _start + _length, line_size );
+    }
+
+    _start = 0;
   }
 
   return _retVal;
