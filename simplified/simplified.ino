@@ -1,5 +1,6 @@
 #include <WiFiManager.h>
 #include "secrets.h"
+#include "search_template.h"
 #include "tmpl_strings.h"
 
 WiFiManager wifimanager;
@@ -48,36 +49,31 @@ void read_strs() {
 
 bool process_line( char* line, uint16_t line_size ) {
   bool _retVal = false;
-  uint16_t _start, _length;
+  size_t _start, _length;
   char _replaceVal[ line_size ];
-  
-  while ( find_key( line, _start ) ) {
-    
-    if ( _start >= strlen( line ) )
-      break;
-    if ( !find_key( &line[ _start + 2 ], _length ) )  // +2 to start new search after the already matched "@@"
-      break;
 
-    strlcpy( _replaceVal, line + _start + 2, _length + 1 ); // _length +1 to include space for string termination character '\0'
+  SEARCH_TMPL::begin();
 
-    _length += 4; // adjust length to include leading and trailing '@' characters.
+  while ( SEARCH_TMPL::hasTemplate( line ) ) {
+
+    strlcpy( _replaceVal, line + SEARCH_TMPL::getVariableStart(), SEARCH_TMPL::getVariableLength() + 1 ); // _length +1 to include space for string termination character '\0'
 
     if ( strcmp( _replaceVal, String("unique_name").c_str() ) == 0 )
-      _retVal = replace_str( line, G_CONF_UNIQUE_NAME, _start, _start + _length, line_size );
+      _retVal = replace_str( line, G_CONF_UNIQUE_NAME,  SEARCH_TMPL::getMatchStart(),  SEARCH_TMPL::getMatchEnd(), line_size );
     if ( strcmp( _replaceVal, String("hardware_version").c_str() ) == 0 )
-      _retVal = replace_str( line, G_HARDWARE_VERSION, _start, _start + _length, line_size );
+      _retVal = replace_str( line, G_HARDWARE_VERSION, SEARCH_TMPL::getMatchStart(),  SEARCH_TMPL::getMatchEnd(), line_size );
     if ( strcmp( _replaceVal, String("firmware_version").c_str() ) == 0 )
-      _retVal = replace_str( line, G_FIRMWARE_VERSION, _start, _start + _length, line_size );
+      _retVal = replace_str( line, G_FIRMWARE_VERSION, SEARCH_TMPL::getMatchStart(),  SEARCH_TMPL::getMatchEnd(), line_size );
     if ( strcmp( _replaceVal, String("ip_address").c_str() ) == 0 ){
       char _ipAddr[ 23 ];
       sprintf( _ipAddr, "http://%s", WiFi.localIP().toString().c_str() );
-      _retVal = replace_str(  line, _ipAddr, _start, _start + _length, line_size );
+      _retVal = replace_str(  line, _ipAddr, SEARCH_TMPL::getMatchStart(),  SEARCH_TMPL::getMatchEnd(), line_size );
     }
     if ( strcmp( _replaceVal, String("timezones").c_str() ) == 0 ){
       uint8_t _size = 15;
       char _placeholder[ _size ];
       strlcpy( _placeholder, "placeholder", _size );
-      _retVal = replace_str( line, _placeholder, _start, _start + _length, line_size );
+      _retVal = replace_str( line, _placeholder, SEARCH_TMPL::getMatchStart(),  SEARCH_TMPL::getMatchEnd(), line_size );
     }
 
     _start = 0;
@@ -100,18 +96,6 @@ bool replace_str( char* line, const char* new_val, uint16_t start_pos, uint16_t 
   }
   
   memcpy( (void*)(line + start_pos), (void*)new_val, _new_val_length );
-  return true;
-}
-
-
-bool find_key( char* line, uint16_t &pos ) {
-char* _needle;
-
-  _needle = strstr( line, "@@" );
-  if ( !_needle )
-    return false;
-  
-  pos = _needle - line;
   return true;
 }
 
