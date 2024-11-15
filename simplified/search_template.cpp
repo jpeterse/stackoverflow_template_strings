@@ -53,6 +53,29 @@ namespace SEARCH_TMPL {
     return true;
   }
 
+
+  bool replace_str( char* line, const char* new_val, uint16_t start_pos, uint16_t end_pos, uint16_t line_size ) {
+    size_t _line_length = strlen( line );
+    size_t _new_val_length = strlen( new_val );
+
+    if ( !checkBounds( line_size, _line_length, (end_pos - start_pos ), _new_val_length ) ) {
+      return false;
+    }
+
+    if ( ( end_pos - start_pos ) != _new_val_length ) {
+      memmove( (void*)(line + start_pos + _new_val_length), (void*)(line + end_pos), _line_length - end_pos + 1);
+    }
+    
+    memcpy( (void*)(line + start_pos), (void*)new_val, _new_val_length );
+    return true;
+  }
+
+
+  bool checkBounds( size_t haystack_size, size_t haystack_length, size_t needle_length, size_t replace_length ) {
+    return haystack_size > ( haystack_length - needle_length + replace_length );
+  }
+
+  
   size_t getMatchStart() { return match_start; }
   size_t getMatchEnd() { return match_end; }
   size_t getMatchLength() { return match_end - match_start; }
