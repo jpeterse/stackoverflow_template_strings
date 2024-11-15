@@ -33,9 +33,11 @@ void begin() {
   
   if ( G_MQTT_ENABLE && WiFi.isConnected() && g_mqtt_client ) {
     g_mqtt_client->begin();
+    g_mqtt_client->connect();
   }
 
-  read_strs();
+  // read_strs();
+  // g_mqtt_client->publish_discovery_messages();
   
   Serial.println( "Done" );
 }

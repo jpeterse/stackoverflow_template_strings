@@ -20,30 +20,109 @@ void MQTTClient::begin() {
   client->setBufferSize( G_MAX_MQTT_MSG_LENGTH );
 }
 
+
 void MQTTClient::call_loop() {
   yield();
 }
 
 
+void MQTTClient::reconnect() {
+  if ( !client->connected() && g_attempts < G_MAX_CONNECT_ATTEMPTS ) {
+    Serial.print("Attempting MQTT connection ...");
+    // Attempt to connect
+    // If you do not want to use a username and password, change next line to
+    // if (client.connect("ESP8266Client")) {
+    if ( client->connect( "ESP8266Client", G_CONF_MQTT_USER, G_CONF_MQTT_PASS ) ) {
+      Serial.println( "Connected to MQTT Server" );
+    } else {
+      g_attempts += 1;
+      Serial.print( " failed, rc=" );
+      Serial.println( client->state() );
+    }
+  }
+}
+
+
+bool MQTTClient::connect() {
+  bool _retVal = false;
+  
+  reconnect();
+  if ( client->connected() ) {
+    // _retVal = publish_tz_state();
+    // if ( _retVal ) {
+      publish_discovery_messages();
+    // }
+  }
+
+  return _retVal;
+}
+
+
+void MQTTClient::disconnect() {
+  if ( g_subscribed )
+    unsubscribe();
+  if ( client->connected() )
+    client->disconnect();
+}
+
+
+bool MQTTClient::subscribe() {
+  // char _mqtt_topic[ strlen( m_mqtt_topic_t ) + strlen( m_unique_name ) + 5 ];
+
+  // sprintf( _mqtt_topic, m_mqtt_topic_t, String( "cmnd" ).c_str(), m_unique_name );
+
+  // if ( !client.connected() ) {
+  //   g_subscribed = false;
+  //   connect();
+  // }
+  // if ( client.connected() ) // don't assume reconnection was successfull if attempted above, verify it
+  //   if ( !g_subscribed ) {
+  //     Serial.printf( "Subscribing to: %s\n", _mqtt_topic );
+  //     g_subscribed = client.subscribe( _mqtt_topic );
+  //   }
+  return g_subscribed;
+}
+
+
+void MQTTClient::unsubscribe() {
+  // char _mqtt_topic[ strlen( m_mqtt_topic_t ) + strlen( m_unique_name ) + 5 ];
+
+  // sprintf( _mqtt_topic, m_mqtt_topic_t, String( "cmnd" ).c_str(), m_unique_name );
+
+  // if ( !client.connected() ) {
+  //   g_subscribed = false;
+  //   connect();
+  // }
+  // if ( client.connected() ) // don't assume reconnection was successfull if attempted above, verify it
+  //   if ( g_subscribed )
+  //     if ( client.unsubscribe( _mqtt_topic ) )
+  //       g_subscribed = false;
+}
+
+
 void MQTTClient::publish_discovery_messages() {
+
+  if ( !client->connected() )
+    return;
+
   const uint16_t _line_size = G_MAX_MQTT_MSG_LENGTH;
-  char _title[ _line_size ];
+  char _topic[ _line_size ];
   char _msg[ _line_size ];
   uint8_t _repCount = sizeof( tmplt_strs ) / sizeof( tmplt_str_t );
   
   for ( uint8_t i = 0; i < _repCount; i++ ) {
-    strlcpy( _title, tmplt_strs[ i ].title, _line_size );
+    strlcpy( _topic, tmplt_strs[ i ].title, _line_size );
     // Serial.printf( "[%s]\t%d:\t%p\t%p\t%s\n", __FUNCTION__, __LINE__, _title, _title[ 0 ], _title );
-    if ( !process_line( _title, _line_size ) )
+    if ( !process_line( _topic, _line_size ) )
       break;
 
     strlcpy( _msg, tmplt_strs[ i ].msg, _line_size);
     if ( !process_line( _msg, _line_size ) )
       break;
 
-    Serial.printf( "[%s]\t%d:\t%s\n", __FUNCTION__, __LINE__, _title );
+    Serial.printf( "[%s]\t%d:\t%s\n", __FUNCTION__, __LINE__, _topic );
     Serial.printf( "[%s]\t%d:\t%s\n", __FUNCTION__, __LINE__, _msg );
-
+    client->publish( _topic, _msg );
   }
 }
 
