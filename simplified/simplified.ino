@@ -1,8 +1,10 @@
+#include <GDBStub.h>
+#include <WiFiClient.h>
 #include <WiFiManager.h>
 #include "mqtt_client.h"
 #include "secrets.h"
-#include "search_template.h"
-#include "tmpl_strings.h"
+#include "template_engine.h"
+#include "config.h"
 
 WiFiManager wifimanager;
 std::unique_ptr<MQTTClient> g_mqtt_client{};
@@ -16,6 +18,9 @@ void setup() {
   while ( !Serial && millis() < 5000 )
     yield();
   Serial.println();
+
+  // for debugging, initialize GDB
+  gdbstub_init();
 
   connectToWiFi();
 
@@ -46,21 +51,22 @@ void begin() {
 // for each title and message in tmplt_strs, replace the template values and print
 void read_strs() {
   const uint16_t _line_size = 1024;
-  char _title[ _line_size ];
+  char _topic[ _line_size ];
   char _msg[ _line_size ];
-  uint8_t _repCount = sizeof( tmplt_strs ) / sizeof( tmplt_str_t );
+  uint8_t _repCount = sizeof( G_DISCOVERY_MESSAGES ) / sizeof( DISCOVERY_MESSAGE_T );
   
   for ( uint8_t i = 0; i < _repCount; i++ ) {
-    strlcpy( _title, tmplt_strs[ i ].title, _line_size );
+    Serial.printf( "[%s] iteration: %u", __FUNCTION__, __COUNTER__ );
+    strlcpy( _topic, G_DISCOVERY_MESSAGES[ i ].TOPIC, _line_size );
     // Serial.printf( "[%s]\t%d:\t%p\t%p\t%s\n", __FUNCTION__, __LINE__, _title, _title[ 0 ], _title );
-    if ( !process_line( _title, _line_size ) )
+    if ( !process_line( _topic, _line_size ) )
       break;
 
-    strlcpy( _msg, tmplt_strs[ i ].msg, _line_size);
+    strlcpy( _msg, G_DISCOVERY_MESSAGES[ i ].MESSAGE, _line_size);
     if ( !process_line( _msg, _line_size ) )
       break;
 
-    Serial.printf( "[%s]\t%d:\t%s\n", __FUNCTION__, __LINE__, _title );
+    Serial.printf( "[%s]\t%d:\t%s\n", __FUNCTION__, __LINE__, _topic );
     Serial.printf( "[%s]\t%d:\t%s\n", __FUNCTION__, __LINE__, _msg );
 
   }
@@ -72,28 +78,28 @@ bool process_line( char* line, uint16_t line_size ) {
   size_t _start, _length;
   char _replaceVal[ line_size ];
 
-  SEARCH_TMPL::begin();
+  TMPL_ENGINE::begin();
 
-  while ( SEARCH_TMPL::hasTemplate( line ) ) {
+  while ( TMPL_ENGINE::hasTemplate( line ) ) {
 
-    strlcpy( _replaceVal, line + SEARCH_TMPL::getVariableStart(), SEARCH_TMPL::getVariableLength() + 1 ); // _length +1 to include space for string termination character '\0'
+    strlcpy( _replaceVal, line + TMPL_ENGINE::getVariableStart(), TMPL_ENGINE::getVariableLength() + 1 ); // _length +1 to include space for string termination character '\0'
 
     if ( strcmp( _replaceVal, String("unique_name").c_str() ) == 0 )
-      _retVal = SEARCH_TMPL::replace_str( line, G_CONF_UNIQUE_NAME,  SEARCH_TMPL::getMatchStart(),  SEARCH_TMPL::getMatchEnd(), line_size );
+      _retVal = TMPL_ENGINE::replace_str( line, G_CONF_UNIQUE_NAME,  TMPL_ENGINE::getMatchStart(),  TMPL_ENGINE::getMatchEnd(), line_size );
     if ( strcmp( _replaceVal, String("hardware_version").c_str() ) == 0 )
-      _retVal = SEARCH_TMPL::replace_str( line, G_HARDWARE_VERSION, SEARCH_TMPL::getMatchStart(),  SEARCH_TMPL::getMatchEnd(), line_size );
+      _retVal = TMPL_ENGINE::replace_str( line, G_HARDWARE_VERSION, TMPL_ENGINE::getMatchStart(),  TMPL_ENGINE::getMatchEnd(), line_size );
     if ( strcmp( _replaceVal, String("firmware_version").c_str() ) == 0 )
-      _retVal = SEARCH_TMPL::replace_str( line, G_FIRMWARE_VERSION, SEARCH_TMPL::getMatchStart(),  SEARCH_TMPL::getMatchEnd(), line_size );
+      _retVal = TMPL_ENGINE::replace_str( line, G_FIRMWARE_VERSION, TMPL_ENGINE::getMatchStart(),  TMPL_ENGINE::getMatchEnd(), line_size );
     if ( strcmp( _replaceVal, String("ip_address").c_str() ) == 0 ){
       char _ipAddr[ 23 ];
       sprintf( _ipAddr, "http://%s", WiFi.localIP().toString().c_str() );
-      _retVal = SEARCH_TMPL::replace_str(  line, _ipAddr, SEARCH_TMPL::getMatchStart(),  SEARCH_TMPL::getMatchEnd(), line_size );
+      _retVal = TMPL_ENGINE::replace_str(  line, _ipAddr, TMPL_ENGINE::getMatchStart(),  TMPL_ENGINE::getMatchEnd(), line_size );
     }
     if ( strcmp( _replaceVal, String("timezones").c_str() ) == 0 ){
       uint8_t _size = 15;
       char _placeholder[ _size ];
       strlcpy( _placeholder, "placeholder", _size );
-      _retVal = SEARCH_TMPL::replace_str( line, _placeholder, SEARCH_TMPL::getMatchStart(),  SEARCH_TMPL::getMatchEnd(), line_size );
+      _retVal = TMPL_ENGINE::replace_str( line, _placeholder, TMPL_ENGINE::getMatchStart(),  TMPL_ENGINE::getMatchEnd(), line_size );
     }
 
     _start = 0;
